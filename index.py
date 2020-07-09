@@ -55,64 +55,116 @@ progressInterval = dcc.Interval(id='progressInterval')
 downloadCSV = html.A('Download csv',id='downloadCSV')
 progressDivInput = html.Div(id='progressDivInput',hidden=True)
 
-def get_layout():
-    return html.Div([   
-                        html.Div([html.Div(['NOAA Global Historical Climatology Network Daily (GHCN-D)'],className='col-12')],className='h1 row',
-                            style={'margin-top':'-10px','margin-bottom':'25px'}
-                            ),
-                            html.Div([
-                            html.Div([html.Div(['Fix Filter Element'],className='h6'),
-                            fixFilter],className='col-12'),
-                            ],className='row'),
+# def get_layout():
+#     return html.Div([   
+#                         html.Div([html.Div(['NOAA Global Historical Climatology Network Daily (GHCN-D)'],className='col-12')],className='h1 row',
+#                             style={'margin-top':'-10px','margin-bottom':'25px'}
+#                             ),
+#                             html.Div([
+#                             html.Div([html.Div(['Fix Filter Element'],className='h6'),
+#                             fixFilter],className='col-12'),
+#                             ],className='row'),
 
-                        html.Div([
-                            html.Div([
-                               html.Div([ 
-                                html.Div(['Stations'],className='card-title h5'),
-                                html.Div([mapbox],className='card-body')],className = 'card', style = {'height':'620px'}), 
-                                ],className='col-8'),    
-                            html.Div([
-                                html.Div([
-                                    html.Div(['Elements'],className='card-title h5'),
-                                    html.Div([html.Div(['Choose:   ',measureChooseAll,measureChooseCore,measureChooseSelf],style={'margin-bottom':10}),
-                                    measures], 
-                                        className='card-body'),
-                                    ],className='card', style = {'height':'620px'}),
-                                ],className='col-4')    
+#                         html.Div([
+#                             html.Div([
+#                                html.Div([ 
+#                                 html.Div(['Stations'],className='card-title h5'),
+#                                 html.Div([mapbox],className='card-body')],className = 'card', style = {'height':'620px'}), 
+#                                 ],className='col-8'),    
+#                             html.Div([
+#                                 html.Div([
+#                                     html.Div(['Elements'],className='card-title h5'),
+#                                     html.Div([html.Div(['Choose:   ',measureChooseAll,measureChooseCore,measureChooseSelf],style={'margin-bottom':10}),
+#                                     measures], 
+#                                         className='card-body'),
+#                                     ],className='card', style = {'height':'620px'}),
+#                                 ],className='col-4')    
 
-                                ],className='row'),
-                            html.Div([
-                                html.Div([
-                                html.Div([
-                                    html.Div(['Years'],className='card-title h5'),
-                                    html.Div([dateRangeInsideOutside,yearSlider],className='card-body'),
-                                    html.Div([yearRange],className='card-footer')
-                                    ],className='card')
-                                    ],className='col-8'),
-                                    html.Div([generateCsvButton,html.Div(children = [downloadSpinner]),progressPercent,downloadCSV,],
-                                        className='col-4',style = {'text-align': 'center','padding-top':'30px'})
-                                    ],className='row'),
+#                                 ],className='row'),
+#                             html.Div([
+#                                 html.Div([
+#                                 html.Div([
+#                                     html.Div(['Years'],className='card-title h5'),
+#                                     html.Div([dateRangeInsideOutside,yearSlider],className='card-body'),
+#                                     html.Div([yearRange],className='card-footer')
+#                                     ],className='card')
+#                                     ],className='col-8'),
+#                                     html.Div([generateCsvButton,html.Div(children = [downloadSpinner]),progressPercent,downloadCSV,],
+#                                         className='col-4',style = {'text-align': 'center','padding-top':'30px'})
+#                                     ],className='row'),
                                                  
                         
-                        progressDivInput,
-                        sessionStore,
-                        sessionGenDiv,
-                        dataProcessMapBox,
-                        dataProcessMeasure,
-                        dataProcessMeasureValue,
-                        dataProcessYearSlider,
-                        dataProcessDownloadData,
-                        mapboxCenterStore,
-                        progressInterval
-                        ],
+#                         progressDivInput,
+#                         sessionStore,
+#                         sessionGenDiv,
+#                         dataProcessMapBox,
+#                         dataProcessMeasure,
+#                         dataProcessMeasureValue,
+#                         dataProcessYearSlider,
+#                         dataProcessDownloadData,
+#                         mapboxCenterStore,
+#                         progressInterval
+#                         ],
                         
-                        )
+#                         )
+
+
+
+def get_layout():
+    return html.Div([
+            html.Div([html.Div(['NOAA Global Historical Climatology Network Daily (GHCN-D)'],className='col-12')],className='h1 row',
+                            style={'margin-top':'-10px','margin-bottom':'25px'}
+                    ),
+            html.Div([
+                    html.Div([html.Div(['Fix Filter Element'],className='h6'),
+                            fixFilter],className='col-12'),
+                    ],className='row'),
+            
+            html.Div([
+                html.Div([
+                    html.Div([
+                            html.Div(['Stations'],className='card-title h5'),
+                            html.Div([mapbox],className='card-body')],className = 'card', style = {'height':'75%'}),
+                html.Div([],style={'height':'1%'}),
+
+                    html.Div([
+                            html.Div(['Years'],className='card-title h5'),
+                            html.Div([dateRangeInsideOutside,yearSlider],className='card-body'),
+                            html.Div([yearRange],className='card-footer')
+                            ],className='card',style = {'height':'24%'})
+                ],className = 'col-8'),
+
+                html.Div([
+                        html.Div([
+                            html.Div(['Elements'],className='card-title h5'),
+                            html.Div([html.Div(['Choose:   ',measureChooseAll,measureChooseCore,measureChooseSelf]),
+                                                measures], className='card-body'),
+                            ],className='card',style={'height':'100%'})
+
+                        ],className = 'col-4')
+
+            ],className = 'row'
+            ),
+        html.Div([
+                html.Div([generateCsvButton,html.Div(children = [downloadSpinner]),progressPercent,downloadCSV,],className = 'col-12',
+                style = {'text-align': 'center','padding-top':'30px'}
+                )            
+
+        ],className = 'row'),
+        progressDivInput,
+        sessionStore,
+        sessionGenDiv,
+        dataProcessMapBox,
+        dataProcessMeasure,
+        dataProcessMeasureValue,
+        dataProcessYearSlider,
+        dataProcessDownloadData,
+        mapboxCenterStore,
+        progressInterval
+    ])
 
 app.layout = get_layout
 
 
-
-
-
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True,host='0.0.0.0')
