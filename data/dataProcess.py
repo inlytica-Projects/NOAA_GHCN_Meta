@@ -22,7 +22,9 @@ import redis
 
 import os 
 
-import os
+import io
+import boto3
+import s3fs
 
 #*********************************************************************************************************************************************
 # Connect to redis server
@@ -330,51 +332,73 @@ def yearRange(yearSliderValue):
                         [State('yearSlider','value'),
                         State('measures','value'),
                         State('mapbox','relayoutData'),
-                        State('mapbox','selectedData')]
+                        State('mapbox','selectedData'),
+                        State('inputAwsBucket','value'),
+                        State('inputAwsObject','value'),
+                        State('inputAwsKey','value'),
+                        State('inputAwsSecretKey','value')]
                         
                     )
 
-def dataProcess(generateCsvButton,sessionStoreData,yearSliderValue,measuresValue,relayoutData,selectedData):
+def dataProcess(generateCsvButton,sessionStoreData,yearSliderValue,measuresValue,relayoutData,selectedData,
+                inputAwsBucket,inputAwsObject,inputAwsKey,inputAwsSecretKey):
     
     
     if generateCsvButton > 0:
 
+        s3 = boto3.client('s3',
+                    aws_access_key_id=inputAwsKey,
+                    aws_secret_access_key=inputAwsSecretKey)
+
+        fs = s3fs.S3FileSystem(key=inputAwsKey,
+                      secret=inputAwsSecretKey
+                      )
+        
         uniqueStations = getRedis('mapbox',sessionStoreData)
-
-
         uniqueStations = filter_by_mapbox_data(uniqueStations,relayoutData,selectedData)
-
         uniqueStations = list(uniqueStations['station'])
+        stationText = ','.join(f''' '{station}' ''' for station in uniqueStations)
+
+        readingText = ','.join(f''' '{reading}' ''' for reading in measuresValue)
 
         yearBegin = yearSliderValue[0]
         yearEnd = yearSliderValue[1]
 
+        #months = range(1,13)
+
+        for year in range(yearBegin,yearEnd+1):
+            #for month in months:
+                #monthDF = pd.DataFrame()
         
+            resp = s3.select_object_content(
+                Bucket='noaa-ghcn-pds',
+                Key=f'csv/{year}.csv',
+                ExpressionType='SQL',
+                Expression = f'''SELECT * FROM s3object s  WHERE s._1 IN ({stationText}) AND s._3 IN ({readingText})''',
+                InputSerialization = {'CSV': {"FileHeaderInfo": "NONE"}, 'CompressionType': 'NONE'},
+                OutputSerialization = {'CSV': {}}
+                )
 
-        dfOutput = pd.DataFrame()
-        for year in range(yearBegin,yearEnd+1,1):
-            noaaFile = f's3://noaa-ghcn-pds/csv/{year}.csv'
+            records=[]
 
-            # ddf = dd.read_csv(noaaFile,names=['ID','YEAR_MONTH_DAY','ELEMENT',
-            #                              'DATA_VALUE','M_FLAG','Q_FLAG','S_FLAG','OBS_TIME'],
-            #                              storage_options={'anon':True},header=None,
-            #                              dtype = {'ID':'object','YEAR_MONTH_DAY':'float64','ELEMENT':'object', 'DATA_VALUE':'int64',
-            #                              'M_FLAG':'object','Q_FLAG':'object','S_FLAG':'object','OBS_TIME':'float64'},chunks=1000)
+            for event in resp['Payload']:
+                if 'Records' in event:
+                    records.append(event['Records']['Payload'].decode('utf-8'))
+            file_str = ''.join(r for r in records)
+    
+    
+            df = pd.read_csv(io.StringIO(file_str),sep=',',header=None,chunksize=10000)
 
-            # ddfFilter = ddf[(ddf['ID'].isin(uniqueStations)) & (ddf['ELEMENT'].isin(measuresValue))]
+            for chunk in df:
+                with fs.open(f's3://{inputAwsBucket}/{inputAwsObject}.csv','a') as f:
+                    chunk.to_csv(f,index=False)
 
-
-
-
-            #dfOutput = dfOutput.append(ddfFilter.compute())
-            #dfOutput = ddfFilter.compute()
-            dfOutput = pd.DataFrame({'Pudgy':[1,2,3,4],'Molson':[1,2,2,4]})
+       
             setRedis('downloadYear',year,sessionStoreData)
         
 
 
-        setRedis('download',dfOutput,sessionStoreData)
-        return f'You have selected {len(dfOutput):,} records.'
+        return 'test'
 
 
 
@@ -408,7 +432,7 @@ def progressUpdate(n_intervals,n_clicks,sessionStoreData,yearSliderValue):
            percentComplete = (updateYear-yearSliderValue[0])/yearRange * 100
            return f'{percentComplete:.0f}% Completed', percentComplete
         except:
-            return '', 0  
+            return '0% Completed', 0  
     else:
         return None, None
 
