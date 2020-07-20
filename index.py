@@ -55,60 +55,10 @@ progressInterval = dcc.Interval(id='progressInterval')
 downloadCSV = html.A('Download csv',id='downloadCSV')
 progressDivInput = html.Div(id='progressDivInput',hidden=True)
 
-# def get_layout():
-#     return html.Div([   
-#                         html.Div([html.Div(['NOAA Global Historical Climatology Network Daily (GHCN-D)'],className='col-12')],className='h1 row',
-#                             style={'margin-top':'-10px','margin-bottom':'25px'}
-#                             ),
-#                             html.Div([
-#                             html.Div([html.Div(['Fix Filter Element'],className='h6'),
-#                             fixFilter],className='col-12'),
-#                             ],className='row'),
-
-#                         html.Div([
-#                             html.Div([
-#                                html.Div([ 
-#                                 html.Div(['Stations'],className='card-title h5'),
-#                                 html.Div([mapbox],className='card-body')],className = 'card', style = {'height':'620px'}), 
-#                                 ],className='col-8'),    
-#                             html.Div([
-#                                 html.Div([
-#                                     html.Div(['Elements'],className='card-title h5'),
-#                                     html.Div([html.Div(['Choose:   ',measureChooseAll,measureChooseCore,measureChooseSelf],style={'margin-bottom':10}),
-#                                     measures], 
-#                                         className='card-body'),
-#                                     ],className='card', style = {'height':'620px'}),
-#                                 ],className='col-4')    
-
-#                                 ],className='row'),
-#                             html.Div([
-#                                 html.Div([
-#                                 html.Div([
-#                                     html.Div(['Years'],className='card-title h5'),
-#                                     html.Div([dateRangeInsideOutside,yearSlider],className='card-body'),
-#                                     html.Div([yearRange],className='card-footer')
-#                                     ],className='card')
-#                                     ],className='col-8'),
-#                                     html.Div([generateCsvButton,html.Div(children = [downloadSpinner]),progressPercent,downloadCSV,],
-#                                         className='col-4',style = {'text-align': 'center','padding-top':'30px'})
-#                                     ],className='row'),
-                                                 
-                        
-#                         progressDivInput,
-#                         sessionStore,
-#                         sessionGenDiv,
-#                         dataProcessMapBox,
-#                         dataProcessMeasure,
-#                         dataProcessMeasureValue,
-#                         dataProcessYearSlider,
-#                         dataProcessDownloadData,
-#                         mapboxCenterStore,
-#                         progressInterval
-#                         ],
-                        
-#                         )
-
-
+inputAwsBucket = dcc.Input(id='inputAwsBucket',placeholder = 'AWS Bucket Name')
+inputAwsObject = dcc.Input(id='inputAwsObject',placeholder = 'AWS Object Name')
+inputAwsKey = dcc.Input(id='inputAwsKey',placeholder = 'AWS Key',type = 'password')
+inputAwsSecretKey = dcc.Input(id='inputAwsSecretKey',placeholder = 'AWS Secret Key',type = 'password')
 
 def get_layout():
     return html.Div([
@@ -146,11 +96,13 @@ def get_layout():
             ],className = 'row'
             ),
         html.Div([
-                html.Div([generateCsvButton,html.Div(children = [downloadSpinner]),progressPercent,downloadCSV,],className = 'col-12',
+                html.Div([generateCsvButton,html.Div(children = [downloadSpinner]),progressPercent,downloadCSV,
+                inputAwsBucket, inputAwsObject, inputAwsKey, inputAwsSecretKey],className = 'col-12',
                 style = {'text-align': 'center','padding-top':'30px'}
                 )            
 
         ],className = 'row'),
+        html.Div([html.A('Produced by: Merrillmount Consulting',href='http://merrillmount.com/',target='_blank')],style = {'padding-top':'30px'}),
         progressDivInput,
         sessionStore,
         sessionGenDiv,

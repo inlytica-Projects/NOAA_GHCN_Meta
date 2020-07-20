@@ -20,14 +20,19 @@ import pyarrow as pa
 import uuid
 import redis
 
+import os 
+
+import os
+
 #*********************************************************************************************************************************************
 # Connect to redis server
 #*********************************************************************************************************************************************
-redis_host = 'localhost'
-redis_port = 6379
-redis = redis.StrictRedis(host = redis_host, port=redis_port)
+redis_host = os.environ['RedisEndpoint'] 
+redis_port = os.environ['RedisPort']
+password = os.environ['RedisPassword']
+redis = redis.StrictRedis(host = redis_host, port=redis_port,password = password)
 
-# Define functions that serialize and compress data to send to redis and to get data back from redis.
+
 
 def setRedis(keyname,data,sessionID):
     inData = pa.serialize(data).to_buffer()
@@ -347,22 +352,23 @@ def dataProcess(generateCsvButton,sessionStoreData,yearSliderValue,measuresValue
         
 
         dfOutput = pd.DataFrame()
-        for year in range(yearBegin,yearEnd+1,1,):
+        for year in range(yearBegin,yearEnd+1,1):
             noaaFile = f's3://noaa-ghcn-pds/csv/{year}.csv'
 
-            ddf = dd.read_csv(noaaFile,names=['ID','YEAR_MONTH_DAY','ELEMENT',
-                                         'DATA_VALUE','M_FLAG','Q_FLAG','S_FLAG','OBS_TIME'],
-                                         storage_options={'anon':True},header=None,
-                                         dtype = {'ID':'object','YEAR_MONTH_DAY':'float64','ELEMENT':'object', 'DATA_VALUE':'int64',
-                                         'M_FLAG':'object','Q_FLAG':'object','S_FLAG':'object','OBS_TIME':'float64'})
+            # ddf = dd.read_csv(noaaFile,names=['ID','YEAR_MONTH_DAY','ELEMENT',
+            #                              'DATA_VALUE','M_FLAG','Q_FLAG','S_FLAG','OBS_TIME'],
+            #                              storage_options={'anon':True},header=None,
+            #                              dtype = {'ID':'object','YEAR_MONTH_DAY':'float64','ELEMENT':'object', 'DATA_VALUE':'int64',
+            #                              'M_FLAG':'object','Q_FLAG':'object','S_FLAG':'object','OBS_TIME':'float64'},chunks=1000)
 
-            ddfFilter = ddf[(ddf['ID'].isin(uniqueStations)) & (ddf['ELEMENT'].isin(measuresValue))]
-
-
+            # ddfFilter = ddf[(ddf['ID'].isin(uniqueStations)) & (ddf['ELEMENT'].isin(measuresValue))]
 
 
-            dfOutput = dfOutput.append(ddfFilter.compute())
 
+
+            #dfOutput = dfOutput.append(ddfFilter.compute())
+            #dfOutput = ddfFilter.compute()
+            dfOutput = pd.DataFrame({'Pudgy':[1,2,3,4],'Molson':[1,2,2,4]})
             setRedis('downloadYear',year,sessionStoreData)
         
 
