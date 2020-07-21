@@ -364,11 +364,10 @@ def dataProcess(generateCsvButton,sessionStoreData,yearSliderValue,measuresValue
         yearBegin = yearSliderValue[0]
         yearEnd = yearSliderValue[1]
 
-        #months = range(1,13)
+        eventCount=1
 
         for year in range(yearBegin,yearEnd+1):
-            #for month in months:
-                #monthDF = pd.DataFrame()
+
         
             resp = s3.select_object_content(
                 Bucket='noaa-ghcn-pds',
@@ -379,21 +378,28 @@ def dataProcess(generateCsvButton,sessionStoreData,yearSliderValue,measuresValue
                 OutputSerialization = {'CSV': {}}
                 )
 
-            records=[]
+            
 
             for event in resp['Payload']:
+                
+                header = True
+                if eventCount > 1:
+                    header = False
+
                 if 'Records' in event:
-                    records.append(event['Records']['Payload'].decode('utf-8'))
-            file_str = ''.join(r for r in records)
+                    records =list(event['Records']['Payload'].decode('utf-8'))
+                    file_str = ''.join(r for r in records)
     
     
-            df = pd.read_csv(io.StringIO(file_str),sep=',',header=None,chunksize=10000)
+                    df = pd.read_csv(io.StringIO(file_str),sep=',',names=['ID','YEAR_MONTH_DAY','ELEMENT',
+                                                                            'DATA_VALUE','M_FLAG','Q_FLAG','S_FLAG','OBS_TIME']) 
 
-            for chunk in df:
-                with fs.open(f's3://{inputAwsBucket}/{inputAwsObject}.csv','a') as f:
-                    chunk.to_csv(f,index=False)
+                
+                    with fs.open(f's3://{inputAwsBucket}/{inputAwsObject}.csv','a') as f:
+                        df.to_csv(f,index=False,header=header)
 
-       
+                    eventCount = eventCount+1
+
             setRedis('downloadYear',year,sessionStoreData)
         
 
