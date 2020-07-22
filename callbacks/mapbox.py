@@ -6,18 +6,32 @@ import numpy as np
 from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
 import dash
+from dash.exceptions import PreventUpdate
 
 import redis
 
 import pyarrow as pa
 
-redis_host = 'localhost'
-redis_port = 6379
-redis = redis.StrictRedis(host = redis_host, port=redis_port)
+import os
+
+
+redis_host = os.environ['RedisEndpoint'] 
+redis_port = os.environ['RedisPort']
+password = os.environ['RedisPassword']
+redis = redis.StrictRedis(host = redis_host, port=redis_port,password = password)
 
 from data.dataProcess import getRedis
 
-mapbox_access_token = 'pk.eyJ1IjoiZ2hhdnJhbmVrIiwiYSI6ImNrOXZtd2c2aTAwdXkza250aDd5Yjl3a2cifQ.cPjzrOP_Pi45wIANslXswQ'
+mapbox_access_token = os.environ['MapboxToken']
+
+@app.callback(Output('mapbox','relayoutData'),
+              [Input('clearFiltersButton','n_clicks')])
+def clearRelayoutdata(clearFiltersButton):
+    if clearFiltersButton>0:
+        return {'autosize': True}
+    else: 
+        raise PreventUpdate
+    
 
 
 
@@ -27,7 +41,7 @@ mapbox_access_token = 'pk.eyJ1IjoiZ2hhdnJhbmVrIiwiYSI6ImNrOXZtd2c2aTAwdXkza250aD
                     Input('dataProcessMapBox','children'),
                     Input('sessionStore','data'),
                     ])  
-def mapbox(mapboxCenterStoreData,dataProcessDiv,sessionStoreData): #,relayoutData
+def mapbox(mapboxCenterStoreData,dataProcessDiv,sessionStoreData): 
    
 
 

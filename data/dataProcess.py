@@ -169,8 +169,6 @@ def mapboxCenterCoords(relayoutData):
     else: 
         centerLon = -94.676392
         centerLat = 39.106667
-        # centerLon = -77.07
-        # centerLat = 38.92
         zoom = 3
 
     return {'centerLon':centerLon,'centerLat':centerLat,'zoom':zoom}
@@ -235,10 +233,11 @@ def dataProcess(sessionStoreData,yearSliderValue,relayoutData,selectedData,fixFi
             Input('sessionStore','data'),
             Input('measureChooseAll','n_clicks'),
             Input('measureChooseCore','n_clicks'),
-            Input('measureChooseSelf','n_clicks')
+            Input('measureChooseSelf','n_clicks'),
+            Input('clearFiltersButton','n_clicks')
             ]
             )
-def measureValue(sessionStoreData,chooseAll,chooseCore,chooseSelf):
+def measureValue(sessionStoreData,chooseAll,chooseCore,chooseSelf,clearFiltersButton):
 
     clicks = chooseAll + chooseCore + chooseSelf
 
@@ -254,6 +253,8 @@ def measureValue(sessionStoreData,chooseAll,chooseCore,chooseSelf):
         values =  ['PRCP','SNOW','SNWD','TMAX','TMIN']
     elif ctx.triggered[0]['prop_id'].split('.')[0] == 'measureChooseSelf':
         values = [] 
+    elif ctx.triggered[0]['prop_id'].split('.')[0] == 'clearFiltersButton':
+        values = optionList 
     else:
         raise PreventUpdate
 
@@ -291,7 +292,7 @@ def measureValue(sessionStoreData,relayoutData,selectedData,measuresValue,fixFil
 
     else:
     
-        #df = inventory.query('measure.isin(@measuresValue)')
+
         df = inventory
 
         df = filter_by_mapbox_data(df,relayoutData,selectedData)
@@ -327,7 +328,7 @@ def yearRange(yearSliderValue):
 
 @app.callback(Output('downloadSpinnerOutput','children'),
                        [
-                        Input('generateCsvButton','n_clicks'),
+                        Input('startDownloadButton','n_clicks'),
                         Input('sessionStore','data')],
                         [State('yearSlider','value'),
                         State('measures','value'),
@@ -340,71 +341,75 @@ def yearRange(yearSliderValue):
                         
                     )
 
-def dataProcess(generateCsvButton,sessionStoreData,yearSliderValue,measuresValue,relayoutData,selectedData,
+def dataProcess(startDownloadButton,sessionStoreData,yearSliderValue,measuresValue,relayoutData,selectedData,
                 inputAwsBucket,inputAwsObject,inputAwsKey,inputAwsSecretKey):
     
-    
-    if generateCsvButton > 0:
 
-        s3 = boto3.client('s3',
-                    aws_access_key_id=inputAwsKey,
-                    aws_secret_access_key=inputAwsSecretKey)
+    if startDownloadButton > 0:
+        try:
+            s3 = boto3.client('s3',
+                        aws_access_key_id=inputAwsKey,
+                        aws_secret_access_key=inputAwsSecretKey)
 
-        fs = s3fs.S3FileSystem(key=inputAwsKey,
-                      secret=inputAwsSecretKey
-                      )
-        
-        uniqueStations = getRedis('mapbox',sessionStoreData)
-        uniqueStations = filter_by_mapbox_data(uniqueStations,relayoutData,selectedData)
-        uniqueStations = list(uniqueStations['station'])
-        stationText = ','.join(f''' '{station}' ''' for station in uniqueStations)
+            fs = s3fs.S3FileSystem(key=inputAwsKey,
+                        secret=inputAwsSecretKey
+                        )
+            
+            uniqueStations = getRedis('mapbox',sessionStoreData)
+            uniqueStations = filter_by_mapbox_data(uniqueStations,relayoutData,selectedData)
+            uniqueStations = list(uniqueStations['station'])
+            stationText = ','.join(f''' '{station}' ''' for station in uniqueStations)
 
-        readingText = ','.join(f''' '{reading}' ''' for reading in measuresValue)
+            readingText = ','.join(f''' '{reading}' ''' for reading in measuresValue)
 
-        yearBegin = yearSliderValue[0]
-        yearEnd = yearSliderValue[1]
+            yearBegin = yearSliderValue[0]
+            yearEnd = yearSliderValue[1]
 
-        eventCount=1
+            eventCount=1
 
-        for year in range(yearBegin,yearEnd+1):
-
-        
-            resp = s3.select_object_content(
-                Bucket='noaa-ghcn-pds',
-                Key=f'csv/{year}.csv',
-                ExpressionType='SQL',
-                Expression = f'''SELECT * FROM s3object s  WHERE s._1 IN ({stationText}) AND s._3 IN ({readingText})''',
-                InputSerialization = {'CSV': {"FileHeaderInfo": "NONE"}, 'CompressionType': 'NONE'},
-                OutputSerialization = {'CSV': {}}
-                )
+            for year in range(yearBegin,yearEnd+1):
 
             
-
-            for event in resp['Payload']:
-                
-                header = True
-                if eventCount > 1:
-                    header = False
-
-                if 'Records' in event:
-                    records =list(event['Records']['Payload'].decode('utf-8'))
-                    file_str = ''.join(r for r in records)
-    
-    
-                    df = pd.read_csv(io.StringIO(file_str),sep=',',names=['ID','YEAR_MONTH_DAY','ELEMENT',
-                                                                            'DATA_VALUE','M_FLAG','Q_FLAG','S_FLAG','OBS_TIME']) 
+                resp = s3.select_object_content(
+                    Bucket='noaa-ghcn-pds',
+                    Key=f'csv/{year}.csv',
+                    ExpressionType='SQL',
+                    Expression = f'''SELECT * FROM s3object s  WHERE s._1 IN ({stationText}) AND s._3 IN ({readingText})''',
+                    InputSerialization = {'CSV': {"FileHeaderInfo": "NONE"}, 'CompressionType': 'NONE'},
+                    OutputSerialization = {'CSV': {}}
+                    )
 
                 
-                    with fs.open(f's3://{inputAwsBucket}/{inputAwsObject}.csv','a') as f:
-                        df.to_csv(f,index=False,header=header)
 
-                    eventCount = eventCount+1
+                for event in resp['Payload']:
+                    
+                    header = True
+                    if eventCount > 1:
+                        header = False
 
-            setRedis('downloadYear',year,sessionStoreData)
+                    if 'Records' in event:
+                        records =list(event['Records']['Payload'].decode('utf-8'))
+                        file_str = ''.join(r for r in records)
         
+        
+                        df = pd.read_csv(io.StringIO(file_str),sep=',',names=['ID','YEAR_MONTH_DAY','ELEMENT',
+                                                                                'DATA_VALUE','M_FLAG','Q_FLAG','S_FLAG','OBS_TIME']) 
+
+                    
+                        with fs.open(f's3://{inputAwsBucket}/{inputAwsObject}.csv','a') as f:
+                            df.to_csv(f,index=False,header=header)
+
+                        eventCount = eventCount+1
+
+                setRedis('downloadYear',year,sessionStoreData)
+            
 
 
-        return 'test'
+            return ''
+
+        
+        except:
+            return 'Could not access the bucket.  Please check credentials and try again'
 
 
 
@@ -412,9 +417,8 @@ def dataProcess(generateCsvButton,sessionStoreData,yearSliderValue,measuresValue
 
 
 @app.callback(Output('progressInterval','disabled'),
-            [Input('generateCsvButton','n_clicks'),
+            [Input('startDownloadButton','n_clicks'),
             Input('progressDivInput','children')]
-             #Input('yearSlider','value')
              )
 def setInterval(n_clicks,progressDivInput):
     if n_clicks > 0 and (progressDivInput is None or progressDivInput != 100):
@@ -426,7 +430,7 @@ def setInterval(n_clicks,progressDivInput):
 
 @app.callback([Output('progressPercent','children'), Output('progressDivInput','children')],
                 [Input('progressInterval','n_intervals'),
-                Input('generateCsvButton','n_clicks'),
+                Input('startDownloadButton','n_clicks'),
                 Input('sessionStore','data')],
                 [State('yearSlider','value')])
 def progressUpdate(n_intervals,n_clicks,sessionStoreData,yearSliderValue):

@@ -39,6 +39,7 @@ fixFilter = dcc.RadioItems(id='fixFilter',options = [{'label':'Time     ','value
                                                     value = 'Time',
                                                     #labelStyle={'display': 'inline-block'}
                                                     )
+clearFiltersButton = html.Button('Clear all filters',id='clearFiltersButton',n_clicks=0)
 
 dateRangeInsideOutside = dcc.RadioItems(id='dateRangeInsideOutside',options=[{'label':'Station date ranges include Slider Values    ','value':'in'},
                                                                             {'label':'Slider Values include Station date ranges    ','value':'out'},
@@ -48,17 +49,19 @@ sessionStore = dcc.Store(id='sessionStore')
 measureValueStore = dcc.Store(id='measureValueStore')
 mapboxCenterStore = dcc.Store(id='mapboxCenterStore')
 
-generateCsvButton = html.Button('Generate CSV',id='generateCsvButton',n_clicks=0)
+
+downloadDataButton = html.Button('Download Filtered Data To Private AWS S3 Bucket',id='downloadDataButton',n_clicks=0)
+startDownloadButton = html.Button('Download',id='startDownloadButton',n_clicks=0)
+
 downloadSpinner = dcc.Loading(id='downloadSpinner',type = 'default',children=[html.Div(id = 'downloadSpinnerOutput')])
 progressPercent = html.Div(id='progressPercent')
 progressInterval = dcc.Interval(id='progressInterval')
 downloadCSV = html.A('Download csv',id='downloadCSV')
 progressDivInput = html.Div(id='progressDivInput',hidden=True)
-
 inputAwsBucket = dcc.Input(id='inputAwsBucket',placeholder = 'AWS Bucket Name')
 inputAwsObject = dcc.Input(id='inputAwsObject',placeholder = 'AWS Object Name')
-inputAwsKey = dcc.Input(id='inputAwsKey',placeholder = 'AWS Key',type = 'password')
-inputAwsSecretKey = dcc.Input(id='inputAwsSecretKey',placeholder = 'AWS Secret Key',type = 'password')
+inputAwsKey = dcc.Input(id='inputAwsKey',placeholder = 'AWS Key',type = 'password',size='40')
+inputAwsSecretKey = dcc.Input(id='inputAwsSecretKey',placeholder = 'AWS Secret Key',type = 'password',size='40')
 
 def get_layout():
     return html.Div([
@@ -67,7 +70,8 @@ def get_layout():
                     ),
             html.Div([
                     html.Div([html.Div(['Fix Filter Element'],className='h6'),
-                            fixFilter],className='col-12'),
+                            fixFilter],className='col-6'),
+                    html.Div([clearFiltersButton],className='col-6',style={'text-align':'center'})    
                     ],className='row'),
             
             html.Div([
@@ -95,13 +99,25 @@ def get_layout():
 
             ],className = 'row'
             ),
-        html.Div([
-                html.Div([generateCsvButton,html.Div(children = [downloadSpinner]),progressPercent,downloadCSV,
-                inputAwsBucket, inputAwsObject, inputAwsKey, inputAwsSecretKey],className = 'col-12',
-                style = {'text-align': 'center','padding-top':'30px'}
-                )            
-
-        ],className = 'row'),
+            html.Div([
+                    html.Div(className='col-2'),
+                    html.Div([downloadDataButton],className='col-8',style={'text-align':'center','padding-top':'30px'}),
+                    html.Div(className='col-2')
+                ],className='row'),
+        
+        html.Div([ 
+                html.Div(className='col-2'),      
+                html.Div(
+                html.Div([
+                html.Div(['Enter private aws s3 information'],className='card-title h5'),
+                html.Div([inputAwsBucket, inputAwsObject],className='card-body'),
+                html.Div([inputAwsKey, inputAwsSecretKey],className='card-body'),
+                html.Div([html.Div(children = [downloadSpinner]),progressPercent],className='card-body'),
+                html.Div([startDownloadButton],className='card-footer',style={'text-align':'center'})
+                ],className = 'card'                
+                ),className='col-8',style={'text-align':'center'}),                
+                html.Div(className='col-2')
+                ],className = 'row',id='downloadDataDiv'),
         html.Div([html.A('Produced by: Merrillmount Consulting',href='http://merrillmount.com/',target='_blank')],style = {'padding-top':'30px'}),
         progressDivInput,
         sessionStore,
