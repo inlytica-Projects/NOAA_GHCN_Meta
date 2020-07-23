@@ -65,9 +65,10 @@ def mapbox(mapboxCenterStoreData,dataProcessDiv,sessionStoreData):
         ),
         text = uniqueStations['station'],
         hovertemplate ="station: %{text}",
-        selected = {'marker':{'color':'#39FF14','size':3}}
-        
-    ))
+        selected = {'marker':{'color':'#39FF14','size':3}},
+    
+    )
+                )
 
     fig.update_layout(
         autosize=False,
@@ -87,7 +88,7 @@ def mapbox(mapboxCenterStoreData,dataProcessDiv,sessionStoreData):
 
         ),
         margin={"r":0,"t":0,"l":0,"b":0}
-    
+
     )
     
     return fig

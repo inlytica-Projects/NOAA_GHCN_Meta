@@ -16,8 +16,15 @@ import redis
 import pyarrow as pa
 
 import time
+#'pan2d','lasso2d',
+mapboxModebar = ['zoom2d',  'select2d',  'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'resetScale2d', 
+                'hoverClosestCartesian', 'hoverCompareCartesian', 'zoom3d', 'pan3d', 'resetCameraDefault3d', 'resetCameraLastSave3d',
+                 'hoverClosest3d', 'orbitRotation','tableRotation', 'zoomInGeo', 'zoomOutGeo', 'resetGeo', 'hoverClosestGeo',
+                'toImage', 'sendDataToCloud', 'hoverClosestGl2d', 'hoverClosestPie', 'toggleHover', 'resetViews', 'toggleSpikelines',
+                'resetViewMapbox' ,'zoom2d','zoomInMapbox','zoomOutMapbox']
 
-mapbox = dcc.Graph(id='mapbox',style = {'height':'550px'})
+mapbox = dcc.Graph(id='mapbox',style = {'height':'550px'},
+                   config={'modeBarButtonsToRemove': mapboxModebar})
 
 measures = dcc.Checklist(id='measures')
 measureChooseAll = html.Button('All',id='measureChooseAll',n_clicks=0)

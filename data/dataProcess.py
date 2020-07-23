@@ -273,10 +273,11 @@ def measureValue(sessionStoreData,chooseAll,chooseCore,chooseSelf,clearFiltersBu
             Input('mapbox','relayoutData'),
             Input('mapbox','selectedData'),
             Input('measures','value'),
-            Input('fixFilter','value')
+            Input('fixFilter','value'),
+            Input('clearFiltersButton','n_clicks')
             ]
             )
-def measureValue(sessionStoreData,relayoutData,selectedData,measuresValue,fixFilterValue):
+def measureValue(sessionStoreData,relayoutData,selectedData,measuresValue,fixFilterValue,clearFiltersButton):
     min = inventory.begin.min()
     max = inventory.end.max()
 
@@ -284,7 +285,8 @@ def measureValue(sessionStoreData,relayoutData,selectedData,measuresValue,fixFil
 
     if ctx.triggered[0]['prop_id'].split('.')[0] == 'measures' and len(ctx.triggered)>1:
         value = [min,max]
-
+    elif ctx.triggered[0]['prop_id'].split('.')[0] == 'clearFiltersButton':
+        value = [min,max]
     elif fixFilterValue == 'Time':
         raise PreventUpdate
     elif relayoutData.get('dragmode') == 'lasso' and selectedData is None:
@@ -420,7 +422,10 @@ def dataProcess(startDownloadButton,sessionStoreData,yearSliderValue,measuresVal
             [Input('startDownloadButton','n_clicks'),
             Input('progressDivInput','children')]
              )
-def setInterval(n_clicks,progressDivInput):
+def setInterval(n_clicks,progressDivInput,yearSlider):
+
+    ctx = dash.callback_context
+    
     if n_clicks > 0 and (progressDivInput is None or progressDivInput != 100):
         return False
     else:
@@ -435,7 +440,7 @@ def setInterval(n_clicks,progressDivInput):
                 [State('yearSlider','value')])
 def progressUpdate(n_intervals,n_clicks,sessionStoreData,yearSliderValue):
     if n_clicks > 0:
-
+        
         try:
            updateYear = getRedis('downloadYear',sessionStoreData)
            yearRange = yearSliderValue[1]-yearSliderValue[0]

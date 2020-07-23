@@ -13,8 +13,6 @@ import flask
 
 import os
 
-from data.dataProcess import inventory
-
 
 redis_host = os.environ['RedisEndpoint'] 
 redis_port = os.environ['RedisPort']
@@ -49,11 +47,10 @@ def measure(dataProcessMeasureValue,sessionStoreData):
                 ],
             [
             Input('dataProcessYearSlider','children'),
-            Input('sessionStore','data'), 
-            Input('clearFiltersButton','n_clicks')            
+            Input('sessionStore','data')        
             ])
-def measure(dataProcessYearSlider,sessionStoreData,clearFiltersButton):
-        inv = inventory
+def measure(dataProcessYearSlider,sessionStoreData):
+
 
         return (getRedis('sliderValue',sessionStoreData)['min'], 
         getRedis('sliderValue',sessionStoreData)['max'], 
@@ -61,8 +58,6 @@ def measure(dataProcessYearSlider,sessionStoreData,clearFiltersButton):
         getRedis('sliderValue',sessionStoreData)['marks'],
         )
 
-        if clearFiltersButton > 0:
-                return     inv.begin.min(), inv.end.max()
 
 #*********************************************************************************************************************************************
 # Hide / unhide download data Div  
