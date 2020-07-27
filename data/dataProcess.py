@@ -4,9 +4,10 @@
 from app import app
 
 import pandas as pd
+import dask
 import dask.dataframe as dd
-from dask.distributed import Client
-
+# from dask.distributed import Client
+# from dask import delayed
 
 import dash
 from dash.dependencies import Input, Output, State
@@ -54,10 +55,9 @@ def getRedis(keyname,sessionID):
     cache = pa.deserialize(cacheSerialize)
     return cache
 
+@dask.delayed
 def filter_by_mapbox_data(dataFrame,relayoutData,selectedData):
     df = dataFrame
-
-
 
     if  relayoutData.get('dragmode') == 'pan':
         df = df 
@@ -193,7 +193,6 @@ def mapboxCenterCoords(relayoutData):
 def dataProcess(sessionStoreData,yearSliderValue,relayoutData,selectedData,fixFilterValue,dateRangeInsideOutsideValue):
 
     if fixFilterValue == 'Measures':
-        #measureInventory = inventory
         raise PreventUpdate
 
     else:
@@ -212,8 +211,9 @@ def dataProcess(sessionStoreData,yearSliderValue,relayoutData,selectedData,fixFi
             measureInventory = inventory
 
         measureInventory = filter_by_mapbox_data(measureInventory,relayoutData,selectedData)
+        finalMeasureInventory = measureInventory.compute()
 
-    measures = list(measureInventory.measure.unique())
+    measures = list(finalMeasureInventory.measure.unique())
 
     options = []
     for measure in measures:
@@ -348,6 +348,8 @@ def dataProcess(startDownloadButton,sessionStoreData,yearSliderValue,measuresVal
     
 
     if startDownloadButton > 0:
+
+        setRedis('downloadYear',yearSliderValue[0],sessionStoreData)
         try:
             s3 = boto3.client('s3',
                         aws_access_key_id=inputAwsKey,
@@ -422,11 +424,14 @@ def dataProcess(startDownloadButton,sessionStoreData,yearSliderValue,measuresVal
             [Input('startDownloadButton','n_clicks'),
             Input('progressDivInput','children')]
              )
-def setInterval(n_clicks,progressDivInput,yearSlider):
-
+def setInterval(n_clicks,progressDivInput):
     ctx = dash.callback_context
+    if ctx.triggered[0]['prop_id'].split('.')[0] == 'startDownloadButton':
+        progress = 0
+    else:
+        progress = progressDivInput
     
-    if n_clicks > 0 and (progressDivInput is None or progressDivInput != 100):
+    if n_clicks > 0 and (progressDivInput is None or progress != 100):
         return False
     else:
         return True

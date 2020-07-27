@@ -16,7 +16,9 @@ import redis
 import pyarrow as pa
 
 import time
-#'pan2d','lasso2d',
+
+
+
 mapboxModebar = ['zoom2d',  'select2d',  'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'resetScale2d', 
                 'hoverClosestCartesian', 'hoverCompareCartesian', 'zoom3d', 'pan3d', 'resetCameraDefault3d', 'resetCameraLastSave3d',
                  'hoverClosest3d', 'orbitRotation','tableRotation', 'zoomInGeo', 'zoomOutGeo', 'resetGeo', 'hoverClosestGeo',
