@@ -26,7 +26,7 @@ mapboxModebar = ['zoom2d',  'select2d',  'zoomIn2d', 'zoomOut2d', 'autoScale2d',
                 'resetViewMapbox' ,'zoom2d','zoomInMapbox','zoomOutMapbox']
 
 mapbox = dcc.Graph(id='mapbox',style = {'height':'550px'},
-                   config={'modeBarButtonsToRemove': mapboxModebar})
+                   config={'modeBarButtonsToRemove': mapboxModebar,'displaylogo':False})
 
 measures = dcc.Checklist(id='measures')
 measureChooseAll = html.Button('All',id='measureChooseAll',n_clicks=0)
@@ -46,9 +46,8 @@ fixFilter = dcc.RadioItems(id='fixFilter',options = [{'label':'Time     ','value
                                                     {'label':'Mapbox     ','value':'Mapbox'},
                                                     {'label':'Measures     ','value':'Measures'}],
                                                     value = 'Time',
-                                                    #labelStyle={'display': 'inline-block'}
                                                     )
-clearFiltersButton = html.Button('Clear all filters',id='clearFiltersButton',n_clicks=0)
+clearFiltersButton = html.Button('Reset Defaults',id='clearFiltersButton',n_clicks=0)
 
 dateRangeInsideOutside = dcc.RadioItems(id='dateRangeInsideOutside',options=[{'label':'Station date ranges include Slider Values    ','value':'in'},
                                                                             {'label':'Slider Values include Station date ranges    ','value':'out'},
@@ -74,14 +73,14 @@ inputAwsSecretKey = dcc.Input(id='inputAwsSecretKey',placeholder = 'AWS Secret K
 
 def get_layout():
     return html.Div([
-            html.Div([html.Div(['NOAA Global Historical Climatology Network Daily (GHCN-D)'],className='col-12')],className='h1 row',
-                            style={'margin-top':'-10px','margin-bottom':'25px'}
-                    ),
+            html.Div([html.Div(['Global Daily Weather Observations'],className='col-6 h1'),html.A('(Information and Data Source)',href='https://docs.opendata.aws/noaa-ghcn-pds/readme.html',
+                        target='_blank',className='col-6',style={'text-align':'right'})],className='row',style={'margin-top':'-10px','margin-bottom':'25px'}),
+   
             html.Div([
                     html.Div([html.Div(['Fix Filter Element'],className='h6'),
                             fixFilter],className='col-6'),
-                    html.Div([clearFiltersButton],className='col-6',style={'text-align':'center'})    
-                    ],className='row'),
+                    html.Div([clearFiltersButton],className='col-6',style={'text-align':'left'})    
+                    ],className='row align-items-end'),
             
             html.Div([
                 html.Div([
@@ -144,4 +143,4 @@ app.layout = get_layout
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True,host='0.0.0.0')
+    app.run_server(debug=False,host='0.0.0.0')

@@ -12,3 +12,29 @@ server = app.server
 app.config.suppress_callback_exceptions = True
 
 
+# Add title and favicon
+
+@server.route("/")
+def MyDashApp():
+    return app.index()
+
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>Global Daily Weather</title>
+        {%favicon%}
+        
+        {%css%}
+    </head>
+    <body>
+        {%app_entry%}
+         {%config%}
+            {%scripts%}
+            {%renderer%}
+    </body>
+</html>
+'''
+
+#{%favicon%}

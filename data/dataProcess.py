@@ -297,7 +297,8 @@ def measureValue(sessionStoreData,relayoutData,selectedData,measuresValue,fixFil
 
         df = inventory
 
-        df = filter_by_mapbox_data(df,relayoutData,selectedData)
+        dd = filter_by_mapbox_data(df,relayoutData,selectedData)
+        df = dd.compute()
 
         value = [df.begin.min(),df.end.max()]
 
@@ -360,7 +361,8 @@ def dataProcess(startDownloadButton,sessionStoreData,yearSliderValue,measuresVal
                         )
             
             uniqueStations = getRedis('mapbox',sessionStoreData)
-            uniqueStations = filter_by_mapbox_data(uniqueStations,relayoutData,selectedData)
+            dd = filter_by_mapbox_data(uniqueStations,relayoutData,selectedData)
+            uniqueStations = dd.compute()
             uniqueStations = list(uniqueStations['station'])
             stationText = ','.join(f''' '{station}' ''' for station in uniqueStations)
 

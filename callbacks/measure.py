@@ -2,6 +2,7 @@ from app import app
 import dash
 from dash.dependencies import Input, Output, State
 import plotly.express as px
+from dash.exceptions import PreventUpdate
 from data.dataProcess import getRedis
 import redis
 import pyarrow as pa
@@ -79,4 +80,15 @@ def hidDownload(downloadDataButton,clearFiltersButton):
 
         
         
+#*********************************************************************************************************************************************
+# Restore fixFilter and  dateRangeInsideOutside values when reset button pressed.
+#********************************************************************************************************************************************
 
+@app.callback([Output('dateRangeInsideOutside','value'),Output('fixFilter','value')],
+               [Input('clearFiltersButton','n_clicks')])
+def resetRadioItems(clearFiltersButton):
+
+        if clearFiltersButton>0:
+                return 'out', 'Time'
+        else:
+                raise PreventUpdate
