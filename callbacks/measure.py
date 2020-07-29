@@ -1,7 +1,7 @@
 from app import app
 import dash
 from dash.dependencies import Input, Output, State
-import plotly.express as px
+#import plotly.express as px
 from dash.exceptions import PreventUpdate
 from data.dataProcess import getRedis
 import redis
@@ -10,7 +10,7 @@ import pyarrow as pa
 
 import io
 
-import flask
+#import flask
 
 import os
 

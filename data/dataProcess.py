@@ -27,6 +27,7 @@ import io
 import boto3
 import s3fs
 
+
 #*********************************************************************************************************************************************
 # Connect to redis server
 #*********************************************************************************************************************************************
@@ -401,8 +402,12 @@ def dataProcess(startDownloadButton,sessionStoreData,yearSliderValue,measuresVal
                         df = pd.read_csv(io.StringIO(file_str),sep=',',names=['ID','YEAR_MONTH_DAY','ELEMENT',
                                                                                 'DATA_VALUE','M_FLAG','Q_FLAG','S_FLAG','OBS_TIME']) 
 
-                    
-                        with fs.open(f's3://{inputAwsBucket}/{inputAwsObject}.csv','a') as f:
+                        userObject = f'{inputAwsObject}.csv'
+                        if inputAwsObject[-4:] == '.csv':
+                            userObject = inputAwsObject
+
+
+                        with fs.open(f's3://{inputAwsBucket}/{userObject}','a') as f:
                             df.to_csv(f,index=False,header=header)
 
                         eventCount = eventCount+1

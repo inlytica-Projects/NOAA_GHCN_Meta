@@ -1,21 +1,12 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
 
-
-import plotly.express as px
 from app import app
 
 
 from callbacks import mapbox, measure
-from data import dataProcess
 
-from data.dataProcess import getRedis
-import redis
-import pyarrow as pa
-
-import time
 
 
 
@@ -42,10 +33,10 @@ dataProcessMeasure = html.Div(id='dataProcessMeasure',style = {'display':'none'}
 dataProcessDownloadData = html.Div(id='dataProcessDownloadData',style = {'display':'none'})
 dataProcessMeasureValue = html.Div(id='dataProcessMeasureValue',style = {'display':'none'})
 dataProcessYearSlider = html.Div(id='dataProcessYearSlider',style = {'display':'none'})
-fixFilter = dcc.RadioItems(id='fixFilter',options = [{'label':'Time     ','value':'Time'},
-                                                    {'label':'Mapbox     ','value':'Mapbox'},
-                                                    {'label':'Measures     ','value':'Measures'}],
-                                                    value = 'Time',
+fixFilter = dcc.RadioItems(id='fixFilter',options = [{'label':'Lock Stations     ','value':'Mapbox'},
+                                                    {'label':'Lock Elements     ','value':'Measures'},
+                                                    {'label':'Lock Years     ','value':'Time'}],
+                                                    value = 'Time'
                                                     )
 clearFiltersButton = html.Button('Reset Defaults',id='clearFiltersButton',n_clicks=0)
 
@@ -73,12 +64,13 @@ inputAwsSecretKey = dcc.Input(id='inputAwsSecretKey',placeholder = 'AWS Secret K
 
 def get_layout():
     return html.Div([
-            html.Div([html.Div(['Global Daily Weather Observations'],className='col-6 h1'),html.A('(Information and Data Source)',href='https://docs.opendata.aws/noaa-ghcn-pds/readme.html',
-                        target='_blank',className='col-6',style={'text-align':'right'})],className='row',style={'margin-top':'-10px','margin-bottom':'25px'}),
+            html.Div([html.Div(['Global Daily Weather Observations'],className='col-6 h1'),
+                      html.Div([html.A('(Information and Data Source)',href='https://docs.opendata.aws/noaa-ghcn-pds/readme.html',
+                        target='_blank')],
+                        className='col-6',style={'text-align':'right'})],className='row',style={'margin-top':'-10px','margin-bottom':'25px'}),
    
             html.Div([
-                    html.Div([html.Div(['Fix Filter Element'],className='h6'),
-                            fixFilter],className='col-6'),
+                    html.Div([fixFilter],className='col-6'),
                     html.Div([clearFiltersButton],className='col-6',style={'text-align':'left'})    
                     ],className='row align-items-end'),
             
@@ -117,7 +109,7 @@ def get_layout():
                 html.Div(className='col-2'),      
                 html.Div(
                 html.Div([
-                html.Div(['Enter private aws s3 information'],className='card-title h5'),
+                html.Div(['Enter private AWS s3 information'],className='card-title h5'),
                 html.Div([inputAwsBucket, inputAwsObject],className='card-body'),
                 html.Div([inputAwsKey, inputAwsSecretKey],className='card-body'),
                 html.Div([html.Div(children = [downloadSpinner]),progressPercent],className='card-body'),
@@ -126,7 +118,7 @@ def get_layout():
                 ),className='col-8',style={'text-align':'center'}),                
                 html.Div(className='col-2')
                 ],className = 'row',id='downloadDataDiv'),
-        html.Div([html.A('Produced by: Merrillmount Consulting',href='http://merrillmount.com/',target='_blank')],style = {'padding-top':'30px'}),
+        html.Div([html.A('Merrillmount Consulting',href='http://merrillmount.com/',target='_blank')],style = {'padding-top':'30px'}),
         progressDivInput,
         sessionStore,
         sessionGenDiv,
