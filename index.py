@@ -43,7 +43,7 @@ clearFiltersButton = html.Button('Reset Defaults',id='clearFiltersButton',n_clic
 dateRangeInsideOutside = dcc.RadioItems(id='dateRangeInsideOutside',options=[{'label':'Station date ranges include Slider Values    ','value':'in'},
                                                                             {'label':'Slider Values include Station date ranges    ','value':'out'},
                                                                             {'label':'Station date ranges equal Slider Values    ','value':'equal'}],                                                                            
-                                                                            value='out')
+                                                                            value='in')
 sessionStore = dcc.Store(id='sessionStore')
 measureValueStore = dcc.Store(id='measureValueStore')
 mapboxCenterStore = dcc.Store(id='mapboxCenterStore')
@@ -109,7 +109,9 @@ def get_layout():
                 html.Div(className='col-2'),      
                 html.Div(
                 html.Div([
-                html.Div(['Enter private AWS s3 information'],className='card-title h5'),
+                    html.Div([html.Div(['Enter private AWS s3 information'],className='h5'),
+                    html.Div(['Your information will never be collected or stored.  Information entered here will not outlast the browser session.'],style={'font-style':'italic'})
+                    ],className='card-title'),
                 html.Div([inputAwsBucket, inputAwsObject],className='card-body'),
                 html.Div([inputAwsKey, inputAwsSecretKey],className='card-body'),
                 html.Div([html.Div(children = [downloadSpinner]),progressPercent],className='card-body'),

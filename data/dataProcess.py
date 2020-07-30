@@ -280,14 +280,16 @@ def measureValue(sessionStoreData,chooseAll,chooseCore,chooseSelf,clearFiltersBu
             )
 def measureValue(sessionStoreData,relayoutData,selectedData,measuresValue,fixFilterValue,clearFiltersButton):
     min = inventory.begin.min()
+    
     max = inventory.end.max()
+    startValue = 1970
 
     ctx = dash.callback_context
 
     if ctx.triggered[0]['prop_id'].split('.')[0] == 'measures' and len(ctx.triggered)>1:
-        value = [min,max]
+        value = [startValue,max]
     elif ctx.triggered[0]['prop_id'].split('.')[0] == 'clearFiltersButton':
-        value = [min,max]
+        value = [startValue,max]
     elif fixFilterValue == 'Time':
         raise PreventUpdate
     elif relayoutData.get('dragmode') == 'lasso' and selectedData is None:
@@ -336,6 +338,7 @@ def yearRange(yearSliderValue):
                         Input('sessionStore','data')],
                         [State('yearSlider','value'),
                         State('measures','value'),
+                        State('measures','options'),
                         State('mapbox','relayoutData'),
                         State('mapbox','selectedData'),
                         State('inputAwsBucket','value'),
@@ -345,13 +348,32 @@ def yearRange(yearSliderValue):
                         
                     )
 
-def dataProcess(startDownloadButton,sessionStoreData,yearSliderValue,measuresValue,relayoutData,selectedData,
+def dataProcess(startDownloadButton,sessionStoreData,yearSliderValue,measuresValue,measuresOptions,relayoutData,selectedData,
                 inputAwsBucket,inputAwsObject,inputAwsKey,inputAwsSecretKey):
     
 
     if startDownloadButton > 0:
 
+
         setRedis('downloadYear',yearSliderValue[0],sessionStoreData)
+        
+        uniqueStations = getRedis('mapbox',sessionStoreData)
+        dd = filter_by_mapbox_data(uniqueStations,relayoutData,selectedData)
+        uniqueStations = dd.compute()
+        uniqueStations = list(uniqueStations['station'])
+        stationText = ','.join(f''' '{station}' ''' for station in uniqueStations)
+
+
+        measureOptions = set([value['value'] for value in measuresOptions])
+        measuresValues = set(measuresValue)
+        measures = list(measureOptions.intersection(measuresValues))
+        readingText = ','.join(f''' '{reading}' ''' for reading in measures)
+
+        yearBegin = yearSliderValue[0]
+        yearEnd = yearSliderValue[1]
+        
+        
+        
         try:
             s3 = boto3.client('s3',
                         aws_access_key_id=inputAwsKey,
@@ -361,16 +383,7 @@ def dataProcess(startDownloadButton,sessionStoreData,yearSliderValue,measuresVal
                         secret=inputAwsSecretKey
                         )
             
-            uniqueStations = getRedis('mapbox',sessionStoreData)
-            dd = filter_by_mapbox_data(uniqueStations,relayoutData,selectedData)
-            uniqueStations = dd.compute()
-            uniqueStations = list(uniqueStations['station'])
-            stationText = ','.join(f''' '{station}' ''' for station in uniqueStations)
 
-            readingText = ','.join(f''' '{reading}' ''' for reading in measuresValue)
-
-            yearBegin = yearSliderValue[0]
-            yearEnd = yearSliderValue[1]
 
             eventCount=1
 

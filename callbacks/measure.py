@@ -89,6 +89,6 @@ def hidDownload(downloadDataButton,clearFiltersButton):
 def resetRadioItems(clearFiltersButton):
 
         if clearFiltersButton>0:
-                return 'out', 'Time'
+                return 'in', 'Time'
         else:
                 raise PreventUpdate
